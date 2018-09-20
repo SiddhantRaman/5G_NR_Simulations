@@ -28,7 +28,7 @@ def overlap_add(S, S_t, WinSize):
 # Algorithm is simple to understand from the code
 # I have used Cosine Windowing for generating WOLA OFDM symbols
 ########################################################################################################################
-def ofdm_dl_waveform_5g(NumOfSymbols, mu, Nrb, Guard, WinSize):
+def ofdm_ul_waveform_5g(NumOfSymbols, mu, Nrb, Guard, WinSize):
     ####################################################################################################################
     NFFT = 4096                       # NFFT fixed in 5G 
     NoOfCarriers = 12*Nrb             # Num Carriers/Tones = 12 * Num Res Blocks
@@ -107,14 +107,22 @@ def ofdm_dl_waveform_5g(NumOfSymbols, mu, Nrb, Guard, WinSize):
     #plt.show()
     return S
 
+#####################################################################################################
+# UpLink in 5G NR supports 2 types of Waveform : 
+#    ofdm_ul_waveform_5g() implements general OFDM like DL Waveform
+#    dft_ofdm_ul_waveform_5g() implements DFT-S-OFDM to minimize the PAPR for power limited purposes
+#####################################################################################################
+def dft_ofdm_ul_waveform_5g(NumSymbols, mu, Guard, WinSize):
+    print('TODO Activity!!!')
+
 # Lets check our 5G NR Downlink Wave for mu = 1, Nrb = 20, Guard Tones = 7 and Window of length = 128
 mu = 1
-S1 = ofdm_dl_waveform_5g(14, mu, 20, 7, 0)
-S2 = ofdm_dl_waveform_5g(14, mu, 20, 7, 128)
+S1 = ofdm_ul_waveform_5g(14, mu, 20, 7, 0)
+S2 = ofdm_ul_waveform_5g(14, mu, 20, 7, 128)
 print(get_papr(S2))
 Fs = 4096 * 15000 * 2**mu
 fig1 = plt.figure()
-plt.title('PSD Comparison OFDM Vs OFDM-WOLA')
+plt.title('UL-PSD Comparison OFDM Vs OFDM-WOLA')
 plt.set_cmap('jet')
 plt.psd(S1, 4096, Fs)
 plt.psd(S2, 4096, Fs)
