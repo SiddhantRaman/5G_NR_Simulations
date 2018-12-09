@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 # output : crs_lte : Cell Specific Reference Sequence
 
 SQRT_2 = np.sqrt(2)
+PI     = np.pi
 
 def gen_lte_crs(Ns, L, N_CellID):
     N_cp = 1
