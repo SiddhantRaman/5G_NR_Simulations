@@ -5,6 +5,14 @@ import matplotlib.pyplot as plt
 from scipy import signal
 ##############################################################################
 
+##############################################################################
+#
+#                          __________        _______________
+#Transmitted Signal ----> |Multipath| ----> |Changing Gains| ---->
+#     ---> |+ Signals from Other Users| ---> |+ Broadband Noise| --->
+#     ---> |+ Narrowband Noise| ---> Received Signal
+#
+##############################################################################
 ###############################################################################
 #AWGN_NOISE() : Generates Additive White Gaussian Noise of PSD power in dBm/Hz
 #    AWGN has Gaussian PDF with 0 mean and Sigma^2 = Noise Power(No/2)
@@ -21,6 +29,9 @@ def awgn_noise(length, power, Bandwidth):
     #plt.show()
     return noise
 
+###############################################################################
+#LPF Filter() : Generates Low Pass Filter FIR
+###############################################################################
 def window_lpf_fir(wc=0.5*np.pi, window='Cos', numTaps=255):
     filt = (wc/np.pi) * np.sinc((wc/np.pi)*np.linspace(-(numTaps-1)/2, (numTaps-1)/2, numTaps))
     if window == 'Cos':
@@ -30,6 +41,9 @@ def window_lpf_fir(wc=0.5*np.pi, window='Cos', numTaps=255):
         firFilt = filt
     return firFilt
 
+###############################################################################
+#BPF Filter() : Generates Band Pass Filter FIR
+###############################################################################
 def window_bpf_fir(w1=0.25*np.pi, w2=0.5*np.pi, window='Cos', numTaps=255):
     filt = (w2/np.pi) * np.sinc((w2/np.pi) * np.linspace(-(numTaps-1)/2, (numTaps-1)/2, numTaps)) - (w1/np.pi) * np.sinc((w1/np.pi) * np.linspace(-(numTaps-1)/2, (numTaps-1)/2, numTaps))
     if window == 'Cos':
@@ -39,11 +53,29 @@ def window_bpf_fir(w1=0.25*np.pi, w2=0.5*np.pi, window='Cos', numTaps=255):
         firFilt = filt
     return firFilt
 
-def delta_func(length=4096):
+###############################################################################
+# Delta Function() : Generates Dirac Delta func of length "length"
+#                    x[10] = 1, by default
+###############################################################################
+def delta_func(pos=10,length=4096):
     Ts = 1/(12*20*15000)
     t = np.linspace(0, Ts, length, endpoint=False)
-    delta = np.concatenate((np.zeros(10), np.ones(1), np.zeros(length-11)))
+    delta = np.concatenate((np.zeros(pos), np.ones(1), np.zeros(length-(pos+1))))
     return delta
+
+def pulse_train(gap=0, length=25):
+    Ts = 1/(12*20*15000)
+    t = np.linspace(0, Ts, length, endpoint=False)
+    x = np.zeros(length)
+    for i in range(length):
+        if(i%(gap+1)==0):
+            x[i] = 1
+    return x
+
+
+###############################################################################
+############## SCRIPTS #############################///########################
+###############################################################################
 
 # Generate AWGN noise of Power -130dBm/Hz and BW 3.6MHz
 noise = awgn_noise(300000, -130, 12*20*15000)
@@ -67,11 +99,18 @@ plt.psd(filtered_noise, 4096, 3.6*10**6)
 # Plot the Un-Filtered Noise and Filtered Noise
 plt.title('FIR Filter : Rect Window Vs Cos^2 Window')
 
-# Plot the spectrum of a delta function : 
+# Plot the spectrum of a delta function :
 #    0dBm/Hz constant for all frequencies
 fig2 = plt.figure()
-d = delta_func(4096)
-print(d.size, d[:10])
+d = delta_func(100,4096)
+print(d.size, d[:110])
 plt.plot(np.linspace(0, 4095, 4096), 20*np.log10(np.abs(np.fft.fft(d))) ,'-r')
 plt.plot(np.linspace(0, 4095, 4096), np.imag(np.fft.fft(d))/np.real(np.fft.fft(d)), '-g')
+
+fig3 = plt.figure()
+length = 64
+train1 = pulse_train(1, length)
+train2 = pulse_train(4, length)
+plt.plot(np.linspace(0, length-1, length), np.abs(np.fft.fft(train1)), '-b')
+plt.plot(np.linspace(0, length-1, length), np.abs(np.fft.fft(train2)), '-r')
 plt.show()
