@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+import channel_utils as cu
 ##############################################################################
 
 ##############################################################################
@@ -59,7 +60,7 @@ def window_bpf_fir(w1=0.25*np.pi, w2=0.5*np.pi, window='Cos', numTaps=255):
 ###############################################################################
 def delta_func(pos=10,length=4096):
     Ts = 1/(12*20*15000)
-    t = np.linspace(0, Ts, length, endpoint=False)
+    t = np.linspace(0, Ts, num=length, endpoint=False)
     delta = np.concatenate((np.zeros(pos), np.ones(1), np.zeros(length-(pos+1))))
     return delta
 
@@ -101,16 +102,35 @@ plt.title('FIR Filter : Rect Window Vs Cos^2 Window')
 
 # Plot the spectrum of a delta function :
 #    0dBm/Hz constant for all frequencies
-fig2 = plt.figure()
+#fig2 = plt.figure()
 d = delta_func(100,4096)
-print(d.size, d[:110])
-plt.plot(np.linspace(0, 4095, 4096), 20*np.log10(np.abs(np.fft.fft(d))) ,'-r')
-plt.plot(np.linspace(0, 4095, 4096), np.imag(np.fft.fft(d))/np.real(np.fft.fft(d)), '-g')
+#print(d.size, d[:110])
+#plt.plot(np.linspace(0, 4095, 4096), 20*np.log10(np.abs(np.fft.fft(d))) ,'-r')
+#plt.plot(np.linspace(0, 4095, 4096), np.imag(np.fft.fft(d))/np.real(np.fft.fft(d)), '-g')
 
-fig3 = plt.figure()
-length = 64
-train1 = pulse_train(1, length)
-train2 = pulse_train(4, length)
-plt.plot(np.linspace(0, length-1, length), np.abs(np.fft.fft(train1)), '-b')
-plt.plot(np.linspace(0, length-1, length), np.abs(np.fft.fft(train2)), '-r')
+#fig3 = plt.figure()
+length = 100
+train1 = pulse_train(20, length)
+train2 = pulse_train(25, length)
+#plt.stem(np.linspace(0, length-1, length), np.abs(np.fft.fft(train1)), '-b')
+#plt.stem(np.linspace(0, length-1, length), np.abs(np.fft.fft(train2)), '-r')
+
+#fig4 = plt.figure()
+#plt.stem(np.linspace(0, length-1, length), train1, '-b')
+#plt.stem(np.linspace(0, length-1, length), train2, '-r')
+
+############## Convolve example #########################
+Ts = 0.01
+time = 10
+length = int(time/Ts)
+t = np.linspace(0, time, num=length, endpoint=False)
+h = np.exp(-t)
+x = np.zeros(length)
+x[int(1/Ts)] = 3
+x[int(3/Ts)] = 2
+y = np.convolve(h, x, 'full')
+fig5 = plt.figure()
+plt.stem(t, y[:length], '-c')
+plt.stem(t, x, '-r')
+plt.stem(t, h, '-g')
 plt.show()
